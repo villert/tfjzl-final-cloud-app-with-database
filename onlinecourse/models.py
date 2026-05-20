@@ -75,6 +75,9 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     content = models.TextField()
 
+    def __str__(self):
+        return self.title
+
 
 # Enrollment model
 # <HINT> Once a user enrolled a class, an enrollment entry should be created between the user and course
@@ -98,6 +101,37 @@ class Enrollment(models.Model):
 # One enrollment could have multiple submission
 # One submission could have multiple choices
 # One choice could belong to multiple submissions
-#class Submission(models.Model):
-#    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
-#    choices = models.ManyToManyField(Choice)
+class Question(models.Model):
+    question_text = models.CharField(max_length=200)
+    grade = models.IntegerField(default=0)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.question_text
+
+    def is_get_score(self, selected_choice_ids):
+        correct_choice_ids = set(
+            self.choice_set.filter(is_correct=True).values_list('id', flat=True)
+        )
+        selected_ids = {
+            choice_id for choice_id in selected_choice_ids
+            if self.choice_set.filter(id=choice_id).exists()
+        }
+        return selected_ids == correct_choice_ids
+
+
+class Choice(models.Model):
+    choice_text = models.CharField(max_length=200)
+    is_correct = models.BooleanField(default=False)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.choice_text
+
+
+class Submission(models.Model):
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
+    choices = models.ManyToManyField(Choice)
+
+    def __str__(self):
+        return str(self.id)

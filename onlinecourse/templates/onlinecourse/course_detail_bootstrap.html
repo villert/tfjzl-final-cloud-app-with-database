@@ -51,6 +51,41 @@
                 {% endfor %}
             </div>
             <!-- Course detail template changes go here -->
+            {% if is_enrolled %}
+            <form action="{% url 'onlinecourse:submit' course.id %}" method="post" class="mt-4">
+                {% csrf_token %}
+                <h4>Final Exam</h4>
+                {% for lesson in course.lesson_set.all %}
+                    {% for question in lesson.question_set.all %}
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <strong>{{ question.question_text }}</strong>
+                            <span class="text-muted">({{ question.grade }} point{{ question.grade|pluralize }})</span>
+                        </div>
+                        <div class="card-body">
+                            {% for choice in question.choice_set.all %}
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="choice{{ choice.id }}"
+                                    id="choice{{ choice.id }}"
+                                    value="{{ choice.id }}"
+                                >
+                                <label class="form-check-label" for="choice{{ choice.id }}">
+                                    {{ choice.choice_text }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+                <button type="submit" class="btn btn-success mt-3">Submit</button>
+            </form>
+            {% elif user.is_authenticated %}
+            <div class="alert alert-info mt-4">Enroll in this course to take the final exam.</div>
+            {% endif %}
     </div>
 </body>
 </html>
